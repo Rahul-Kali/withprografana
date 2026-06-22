@@ -22,3 +22,21 @@ groups:
         annotations:
           summary: "{{ $labels.application }} has high 5xx errors"
           description: "More than 5% of HTTP requests have returned 5xx responses over the last 5 minutes."
+
+      - alert: OrderFailuresDetected
+        expr: increase(orders_total{result="failure"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Order failures detected"
+          description: "At least one order failed in the last 5 minutes."
+
+      - alert: FallbackCallsDetected
+        expr: increase(downstream_service_calls_total{source="fallback"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Order service used a fallback URL"
+          description: "The order-service used fallback calls for {{ $labels.service }} in the last 5 minutes."

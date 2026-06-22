@@ -33,8 +33,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
+        "h": 6,
+        "w": 6,
         "x": 0,
         "y": 0
       },
@@ -44,7 +44,6 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -52,11 +51,8 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "11.1.4",
       "targets": [
         {
           "datasource": {
@@ -83,6 +79,193 @@
         "defaults": {
           "mappings": [],
           "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 95
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(orders_total{result=\"success\"}) / clamp_min(sum(orders_total), 1)",
+          "instant": true,
+          "legendFormat": "success rate",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Order Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(orders_total)",
+          "instant": true,
+          "legendFormat": "orders",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Orders",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(downstream_service_calls_total{source=\"fallback\"})",
+          "instant": true,
+          "legendFormat": "fallbacks",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Fallback Calls",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
             "mode": "absolute",
             "steps": [
               {
@@ -97,14 +280,13 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 16,
-        "x": 8,
-        "y": 0
+        "w": 12,
+        "x": 0,
+        "y": 6
       },
-      "id": 2,
+      "id": 5,
       "options": {
         "legend": {
-          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -114,7 +296,6 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.1.4",
       "targets": [
         {
           "datasource": {
@@ -122,13 +303,13 @@
             "uid": "Prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (application) (rate(http_server_requests_seconds_count[5m]))",
-          "legendFormat": "{{ application }}",
+          "expr": "sum by (result) (rate(orders_total[5m]))",
+          "legendFormat": "{{ result }}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Spring Request Rate",
+      "title": "Order Rate",
       "type": "timeseries"
     },
     {
@@ -154,14 +335,13 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 8
+        "w": 12,
+        "x": 12,
+        "y": 6
       },
-      "id": 3,
+      "id": 6,
       "options": {
         "legend": {
-          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -171,7 +351,61 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.1.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (service, source, result) (rate(downstream_service_calls_total[5m]))",
+          "legendFormat": "{{ service }} / {{ source }} / {{ result }}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Downstream Service Calls",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "targets": [
         {
           "datasource": {
@@ -180,7 +414,7 @@
           },
           "editorMode": "code",
           "expr": "rate(payment_requests_total[5m])",
-          "legendFormat": "payment",
+          "legendFormat": "payment {{ status }}",
           "range": true,
           "refId": "A"
         },
@@ -191,7 +425,7 @@
           },
           "editorMode": "code",
           "expr": "rate(notification_requests_total[5m])",
-          "legendFormat": "notification",
+          "legendFormat": "notification {{ status }}",
           "range": true,
           "refId": "B"
         },
@@ -202,12 +436,100 @@
           },
           "editorMode": "code",
           "expr": "rate(analytics_requests_total[5m])",
-          "legendFormat": "analytics",
+          "legendFormat": "analytics {{ status }}",
           "range": true,
           "refId": "C"
         }
       ],
-      "title": "Flask Request Rate",
+      "title": "Flask Service Request Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(orders_duration_seconds_sum[5m])) / clamp_min(sum(rate(orders_duration_seconds_count[5m])), 0.001)",
+          "legendFormat": "order average",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(payment_request_duration_seconds_sum[5m])) / clamp_min(sum(rate(payment_request_duration_seconds_count[5m])), 0.001)",
+          "legendFormat": "payment average",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(notification_request_duration_seconds_sum[5m])) / clamp_min(sum(rate(notification_request_duration_seconds_count[5m])), 0.001)",
+          "legendFormat": "notification average",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(analytics_request_duration_seconds_sum[5m])) / clamp_min(sum(rate(analytics_request_duration_seconds_count[5m])), 0.001)",
+          "legendFormat": "analytics average",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "Average Latency",
       "type": "timeseries"
     }
   ],
@@ -215,6 +537,7 @@
   "schemaVersion": 39,
   "tags": [
     "microservices",
+    "orders",
     "prometheus"
   ],
   "templating": {
@@ -226,8 +549,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Microservices Overview",
+  "title": "Microservices Order Metrics",
   "uid": "microservices-overview",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

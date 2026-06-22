@@ -50,6 +50,22 @@ data:
             annotations:
               summary: "{{ $labels.instance }} is down"
               description: "Prometheus has not been able to scrape {{ $labels.instance }} for more than 1 minute."
+          - alert: OrderFailuresDetected
+            expr: increase(orders_total{result="failure"}[5m]) > 0
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Order failures detected"
+              description: "At least one order failed in the last 5 minutes."
+          - alert: FallbackCallsDetected
+            expr: increase(downstream_service_calls_total{source="fallback"}[5m]) > 0
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Order service used a fallback URL"
+              description: "The order-service used fallback calls for {{ $labels.service }} in the last 5 minutes."
 ---
 apiVersion: v1
 kind: ConfigMap

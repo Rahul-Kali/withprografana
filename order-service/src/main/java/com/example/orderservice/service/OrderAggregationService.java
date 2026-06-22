@@ -9,10 +9,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 @Service
 public class OrderAggregationService {
 
     private final RestTemplate restTemplate;
+    private final MeterRegistry meterRegistry;
     private final String userServiceUrl;
     private final String userServiceFallbackUrl;
     private final String productServiceUrl;
@@ -26,6 +31,7 @@ public class OrderAggregationService {
 
     public OrderAggregationService(
             RestTemplate restTemplate,
+            MeterRegistry meterRegistry,
             @Value("${services.user.primary-url}") String userServiceUrl,
             @Value("${services.user.fallback-url}") String userServiceFallbackUrl,
             @Value("${services.product.primary-url}") String productServiceUrl,
@@ -37,6 +43,7 @@ public class OrderAggregationService {
             @Value("${services.analytics.primary-url}") String analyticsServiceUrl,
             @Value("${services.analytics.fallback-url}") String analyticsServiceFallbackUrl) {
         this.restTemplate = restTemplate;
+        this.meterRegistry = meterRegistry;
         this.userServiceUrl = userServiceUrl;
         this.userServiceFallbackUrl = userServiceFallbackUrl;
         this.productServiceUrl = productServiceUrl;
@@ -50,30 +57,70 @@ public class OrderAggregationService {
     }
 
     public Map<String, Object> placeOrder() {
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("user", getStringWithFallback(userServiceUrl, userServiceFallbackUrl));
-        response.put("product", getStringWithFallback(productServiceUrl, productServiceFallbackUrl));
-        response.put("payment", postWithFallback(paymentServiceUrl, paymentServiceFallbackUrl));
-        response.put("notification", postWithFallback(notificationServiceUrl, notificationServiceFallbackUrl));
-        response.put("analytics", postWithFallback(analyticsServiceUrl, analyticsServiceFallbackUrl));
-        response.put("message", "Order placed successfully");
-        return response;
+        return Timer.builder("orders_duration_seconds")
+                .description("Time taken to place an order across all services")
+                .register(meterRegistry)
+                .record(() -> {
+                    try {
+                        Map<String, Object> response = new LinkedHashMap<>();
+                        response.put("user", getStringWithFallback("user-service", userServiceUrl, userServiceFallbackUrl));
+                        response.put("product", getStringWithFallback("product-service", productServiceUrl, productServiceFallbackUrl));
+                        response.put("payment", postWithFallback("payment-service", paymentServiceUrl, paymentServiceFallbackUrl));
+                        response.put("notification", postWithFallback("notification-service", notificationServiceUrl, notificationServiceFallbackUrl));
+                        response.put("analytics", postWithFallback("analytics-service", analyticsServiceUrl, analyticsServiceFallbackUrl));
+                        response.put("message", "Order placed successfully");
+                        incrementOrderCounter("success");
+                        return response;
+                    } catch (RuntimeException exception) {
+                        incrementOrderCounter("failure");
+                        throw exception;
+                    }
+                });
     }
 
-    private String getStringWithFallback(String primaryUrl, String fallbackUrl) {
+    private String getStringWithFallback(String serviceName, String primaryUrl, String fallbackUrl) {
         try {
-            return restTemplate.getForObject(primaryUrl, String.class);
+            String response = restTemplate.getForObject(primaryUrl, String.class);
+            incrementServiceCallCounter(serviceName, "GET", "primary", "success");
+            return response;
         } catch (RestClientException exception) {
-            return restTemplate.getForObject(fallbackUrl, String.class);
+            incrementServiceCallCounter(serviceName, "GET", "primary", "failure");
+            String response = restTemplate.getForObject(fallbackUrl, String.class);
+            incrementServiceCallCounter(serviceName, "GET", "fallback", "success");
+            return response;
         }
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> postWithFallback(String primaryUrl, String fallbackUrl) {
+    private Map<String, Object> postWithFallback(String serviceName, String primaryUrl, String fallbackUrl) {
         try {
-            return restTemplate.postForObject(primaryUrl, HttpEntity.EMPTY, Map.class);
+            Map<String, Object> response = restTemplate.postForObject(primaryUrl, HttpEntity.EMPTY, Map.class);
+            incrementServiceCallCounter(serviceName, "POST", "primary", "success");
+            return response;
         } catch (RestClientException exception) {
-            return restTemplate.postForObject(fallbackUrl, HttpEntity.EMPTY, Map.class);
+            incrementServiceCallCounter(serviceName, "POST", "primary", "failure");
+            Map<String, Object> response = restTemplate.postForObject(fallbackUrl, HttpEntity.EMPTY, Map.class);
+            incrementServiceCallCounter(serviceName, "POST", "fallback", "success");
+            return response;
         }
+    }
+
+    private void incrementOrderCounter(String result) {
+        Counter.builder("orders_total")
+                .description("Total order requests handled by order-service")
+                .tag("result", result)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    private void incrementServiceCallCounter(String serviceName, String method, String source, String result) {
+        Counter.builder("downstream_service_calls_total")
+                .description("Total downstream calls made while placing orders")
+                .tag("service", serviceName)
+                .tag("method", method)
+                .tag("source", source)
+                .tag("result", result)
+                .register(meterRegistry)
+                .increment();
     }
 }

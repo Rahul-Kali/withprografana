@@ -1,15 +1,27 @@
-from flask import Flask, Response, jsonify
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
+from time import perf_counter
+
+from flask import Flask, Response, jsonify, request
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 app = Flask(__name__)
-NOTIFICATION_REQUESTS = Counter("notification_requests_total", "Total notification requests")
+NOTIFICATION_REQUESTS = Counter("notification_requests_total", "Total notification requests", ["endpoint", "status"])
+NOTIFICATION_LATENCY = Histogram("notification_request_duration_seconds", "Notification request latency", ["endpoint"])
 
 
 @app.post("/notify")
 def notify():
-    NOTIFICATION_REQUESTS.inc()
-    print("Notification sent")
-    return jsonify({"status": "Notification sent"})
+    start = perf_counter()
+    status = "success"
+    try:
+        print("Notification sent")
+        return jsonify({"status": "Notification sent", "channel": "email"})
+    except Exception:
+        status = "failure"
+        raise
+    finally:
+        endpoint = request.path
+        NOTIFICATION_REQUESTS.labels(endpoint=endpoint, status=status).inc()
+        NOTIFICATION_LATENCY.labels(endpoint=endpoint).observe(perf_counter() - start)
 
 
 @app.get("/metrics")

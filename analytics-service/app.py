@@ -1,15 +1,27 @@
-from flask import Flask, Response, jsonify
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
+from time import perf_counter
+
+from flask import Flask, Response, jsonify, request
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 app = Flask(__name__)
-ANALYTICS_REQUESTS = Counter("analytics_requests_total", "Total analytics requests")
+ANALYTICS_REQUESTS = Counter("analytics_requests_total", "Total analytics requests", ["endpoint", "status"])
+ANALYTICS_LATENCY = Histogram("analytics_request_duration_seconds", "Analytics request latency", ["endpoint"])
 
 
 @app.post("/analytics")
 def analytics():
-    ANALYTICS_REQUESTS.inc()
-    print("Analytics logged")
-    return jsonify({"status": "Analytics logged"})
+    start = perf_counter()
+    status = "success"
+    try:
+        print("Analytics logged")
+        return jsonify({"status": "Analytics logged", "event": "order_placed"})
+    except Exception:
+        status = "failure"
+        raise
+    finally:
+        endpoint = request.path
+        ANALYTICS_REQUESTS.labels(endpoint=endpoint, status=status).inc()
+        ANALYTICS_LATENCY.labels(endpoint=endpoint).observe(perf_counter() - start)
 
 
 @app.get("/metrics")

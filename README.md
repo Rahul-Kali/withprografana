@@ -60,6 +60,16 @@ Prometheus scrapes:
 - Spring Boot services from `/actuator/prometheus`
 - Flask services from `/metrics`
 
+Useful custom metrics:
+
+- `orders_total` - order requests by `result`
+- `orders_duration_seconds` - end-to-end order latency
+- `downstream_service_calls_total` - order-service calls to user, product, payment, notification, and analytics services by `source` and `result`
+- `payment_requests_total`, `notification_requests_total`, `analytics_requests_total` - Flask service traffic by endpoint and status
+- `payment_request_duration_seconds`, `notification_request_duration_seconds`, `analytics_request_duration_seconds` - Flask service latency
+
+Place a few orders from http://localhost:3000, then open the Grafana dashboard named `Microservices Order Metrics`.
+
 Email alerts are configured in `monitoring/alertmanager/alertmanager.yml`. Replace these placeholder values before using alerts:
 
 - `smtp_from`
