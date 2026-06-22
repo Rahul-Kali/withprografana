@@ -1,0 +1,24 @@
+groups:
+  - name: microservices
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"spring-services|flask-services"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} is down"
+          description: "Prometheus has not been able to scrape {{ $labels.instance }} for more than 1 minute."
+
+      - alert: HighHttpServerErrorRate
+        expr: |
+          sum by (application) (rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+          /
+          sum by (application) (rate(http_server_requests_seconds_count[5m]))
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.application }} has high 5xx errors"
+          description: "More than 5% of HTTP requests have returned 5xx responses over the last 5 minutes."
