@@ -1,0 +1,43 @@
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "8081:8081"
+
+  product-service:
+    build: ./product-service
+    ports:
+      - "8082:8082"
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - user-service
+      - product-service
+      - payment-service
+      - notification-service
+      - analytics-service
+
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "5001:5001"
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "5002:5002"
+
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "5003:5003"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - order-service

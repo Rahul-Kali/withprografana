@@ -1,0 +1,5 @@
+com\example\orderservice\controller\OrderController.class
+com\example\orderservice\config\WebConfig.class
+com\example\orderservice\service\OrderAggregationService.class
+com\example\orderservice\OrderServiceApplication.class
+com\example\orderservice\config\RestTemplateConfig.class
