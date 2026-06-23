@@ -125,29 +125,7 @@ pipeline {
                 sh '''
                 echo "Deploying to Kubernetes..."
 
-                kubectl apply -f k8s/userservice.yaml
-                kubectl apply -f k8s/productservice.yaml
-                kubectl apply -f k8s/paymentservice.yaml
-                kubectl apply -f k8s/notification.yaml
-                kubectl apply -f k8s/analytics.yaml
-                kubectl apply -f k8s/orderservice.yaml
-                kubectl apply -f k8s/frontend.yaml
-                kubectl apply -f k8s/ingress.yaml
-                kubectl apply -f k8s/monitoring.yaml
-
-                echo "Waiting for application deployments..."
-                kubectl rollout status deployment/user-service --timeout=180s
-                kubectl rollout status deployment/product-service --timeout=180s
-                kubectl rollout status deployment/payment-service --timeout=180s
-                kubectl rollout status deployment/notification-service --timeout=180s
-                kubectl rollout status deployment/analytics-service --timeout=180s
-                kubectl rollout status deployment/order-service --timeout=180s
-                kubectl rollout status deployment/frontend --timeout=180s
-
-                echo "Waiting for monitoring deployments..."
-                kubectl rollout status deployment/prometheus -n monitoring --timeout=180s
-                kubectl rollout status deployment/alertmanager -n monitoring --timeout=180s
-                kubectl rollout status deployment/grafana -n monitoring --timeout=180s
+                kubectl apply -f k8s/
 
                 sleep 15
                 '''
@@ -158,18 +136,9 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                echo "Default namespace resources:"
                 kubectl get pods
                 kubectl get svc
                 kubectl get ingress
-
-                echo "Monitoring namespace resources:"
-                kubectl get namespace monitoring
-                kubectl get pods -n monitoring
-                kubectl get svc -n monitoring
-
-                echo "Grafana Minikube URL:"
-                minikube service grafana -n monitoring --url || true
                 '''
             }
         }
