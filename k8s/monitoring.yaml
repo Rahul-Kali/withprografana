@@ -9,13 +9,13 @@ metadata:
   name: prometheus-config
   namespace: monitoring
 data:
-  prometheus.yml: |
+  prometheus.yaml: |
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
 
     rule_files:
-      - /etc/prometheus/alerts.yml
+      - /etc/prometheus/alerts.yaml
 
     alerting:
       alertmanagers:
@@ -44,7 +44,7 @@ data:
               - payment-service.default.svc.cluster.local:5001
               - notification-service.default.svc.cluster.local:5002
               - analytics-service.default.svc.cluster.local:5003
-  alerts.yml: |
+  alerts.yaml: |
     groups:
       - name: microservices
         rules:
@@ -79,7 +79,7 @@ metadata:
   name: alertmanager-config
   namespace: monitoring
 data:
-  alertmanager.yml: |
+  alertmanager.yaml: |
     global:
       smtp_smarthost: "smtp.gmail.com:587"
       smtp_from: "your-email@gmail.com"
@@ -99,7 +99,7 @@ data:
     receivers:
       - name: email-alerts
         email_configs:
-          - to: "receiver-email@example.com"
+          - to: "kalirahul176@gmail.com"
             send_resolved: true
 ---
 apiVersion: v1
@@ -108,7 +108,7 @@ metadata:
   name: grafana-provisioning
   namespace: monitoring
 data:
-  datasource.yml: |
+  datasource.yaml: |
     apiVersion: 1
 
     datasources:
