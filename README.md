@@ -50,6 +50,14 @@ Monitoring URLs:
 - Alertmanager: http://localhost:9093
 - Grafana: http://localhost:3001
 
+For Kubernetes, the monitoring stack is deployed into the `monitoring` namespace:
+
+```powershell
+kubectl apply -f k8s/monitoring.yaml
+```
+
+The Jenkins CI/CD pipeline also deploys this stack to Minikube and prints the monitoring namespace resources plus the Grafana Minikube URL during verification.
+
 Grafana login:
 
 - Username: `admin`
